@@ -1,0 +1,781 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+  
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --gold:#C9A84C;--gold-lt:#E8C97A;--gold-dk:#8B6B2A;
+    --bg:#0E0F11;--bg2:#141519;--bg3:#1C1E24;--bg4:#24272F;
+    --border:#2A2D36;--border-gold:rgba(201,168,76,0.3);
+    --text:#E8E6DF;--text2:#9A9690;--text3:#5C5A56;
+    --red:#C4533A;--green:#3A8A5C;--amber:#C9893A;--blue:#3A6EC4;
+    --teal:#3A8A8A;--purple:#7A5AC4;
+  }
+
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+  /* NAV */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .topbar-logo{display:flex;align-items:center;gap:10px;}
+  .logo-mark{width:28px;height:28px;background:var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;color:#000;font-weight:700;}
+  .logo-text{font-family:'Playfair Display',serif;font-size:16px;color:var(--text);letter-spacing:0.03em;}
+  .logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-top:1px;}
+  .topbar-nav{display:flex;gap:4px;}
+  .nav-btn{padding:6px 14px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all 0.2s;letter-spacing:0.04em;}
+  .nav-btn:hover{background:var(--bg4);color:var(--text);}
+  .nav-btn.active{background:var(--bg4);color:var(--gold);border:1px solid var(--border-gold);}
+  .topbar-right{display:flex;align-items:center;gap:10px;}
+  .date-badge{font-size:11px;color:var(--text3);letter-spacing:0.05em;}
+  .pulse-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(58,138,92,0.6);animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+  /* MAIN LAYOUT */
+  .shell{display:flex;height:calc(100vh - 49px);}
+  .sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;}
+  .content{flex:1;overflow-y:auto;padding:24px;}
+
+  /* SIDEBAR */
+  .sidebar-section{padding:16px 12px 8px;font-size:10px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;}
+  .co-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-left:3px solid transparent;transition:all 0.18s;position:relative;}
+  .co-item:hover{background:var(--bg3);border-left-color:var(--border-gold);}
+  .co-item.active{background:var(--bg3);border-left-color:var(--gold);}
+  .co-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .co-name{font-size:12px;color:var(--text2);line-height:1.3;}
+  .co-item.active .co-name{color:var(--text);}
+  .co-short{font-size:10px;color:var(--text3);}
+  .co-badge{margin-left:auto;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:500;}
+
+  /* HEADER METRICS */
+  .metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+  .metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;}
+  .metric-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;filter:blur(30px);opacity:0.15;}
+  .metric-card.gold::after{background:var(--gold);}
+  .metric-card.green::after{background:var(--green);}
+  .metric-card.red::after{background:var(--red);}
+  .metric-card.blue::after{background:var(--blue);}
+  .m-label{font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;}
+  .m-value{font-family:'Playfair Display',serif;font-size:24px;color:var(--text);line-height:1;}
+  .m-delta{font-size:11px;margin-top:5px;}
+  .m-delta.up{color:var(--green);}
+  .m-delta.dn{color:var(--red);}
+  .m-delta.neu{color:var(--text3);}
+
+  /* COMPANY GRID */
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .section-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--text);}
+  .section-sub{font-size:12px;color:var(--text3);}
+  .btn-sm{padding:5px 12px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+  .btn-sm:hover{border-color:var(--border-gold);color:var(--gold);}
+
+  .company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:28px;}
+  .co-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+  .co-card:hover{border-color:var(--border-gold);background:var(--bg3);transform:translateY(-1px);}
+  .co-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0;opacity:0.6;}
+  .co-card.c0::before{background:var(--gold);}
+  .co-card.c1::before{background:var(--teal);}
+  .co-card.c2::before{background:var(--blue);}
+  .co-card.c3::before{background:var(--purple);}
+  .co-card.c4::before{background:var(--amber);}
+  .co-card.c5::before{background:var(--red);}
+  .co-card.c6::before{background:var(--green);}
+
+  .cc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+  .cc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .cc-right{text-align:right;}
+  .cc-status{font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:0.05em;font-weight:500;}
+  .status-active{background:rgba(58,138,92,0.15);color:var(--green);}
+  .status-growth{background:rgba(201,168,76,0.15);color:var(--gold);}
+  .status-dev{background:rgba(58,110,196,0.15);color:var(--blue);}
+  .cc-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;}
+  .cc-sector{font-size:11px;color:var(--text3);}
+  .cc-rev{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);margin-bottom:2px;}
+  .cc-rev-label{font-size:10px;color:var(--text3);}
+
+  .cc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .cc-stat{text-align:center;}
+  .cc-stat-v{font-size:13px;font-weight:500;color:var(--text);}
+  .cc-stat-l{font-size:10px;color:var(--text3);margin-top:1px;}
+
+  .progress-bar{height:3px;background:var(--bg4);border-radius:2px;margin-top:10px;overflow:hidden;}
+  .progress-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+
+  /* TWO-COL LOWER */
+  .lower-grid{display:grid;grid-template-columns:1fr 380px;gap:14px;}
+  
+  /* DECISIONS / ACTIONS */
+  .panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+  .panel-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+  .panel-title-icon{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+
+  .action-item{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+  .action-item:last-child{border-bottom:none;}
+  .action-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:1px;}
+  .action-body{flex:1;}
+  .action-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:3px;}
+  .action-meta{font-size:11px;color:var(--text3);}
+  .action-tag{font-size:10px;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle;}
+  .tag-urgent{background:rgba(196,83,58,0.2);color:var(--red);}
+  .tag-review{background:rgba(201,168,76,0.15);color:var(--gold);}
+  .tag-info{background:rgba(58,110,196,0.15);color:var(--blue);}
+  .action-check{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;margin-top:4px;transition:all 0.15s;}
+  .action-check:hover{border-color:var(--gold);}
+  .action-check.done{background:var(--green);border-color:var(--green);}
+
+  /* CASHFLOW / HEATMAP */
+  .heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px;}
+  .hmap-cell{height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3);cursor:default;transition:opacity 0.15s;}
+  .hmap-cell:hover{opacity:0.8;}
+  .hmap-label{font-size:10px;color:var(--text3);text-align:center;margin-bottom:6px;}
+
+  /* PORTFOLIO ALLOCATION */
+  .alloc-list{margin-top:10px;}
+  .alloc-item{margin-bottom:9px;}
+  .alloc-top{display:flex;justify-content:space-between;margin-bottom:4px;}
+  .alloc-name{font-size:12px;color:var(--text2);}
+  .alloc-pct{font-size:12px;color:var(--text);font-weight:500;}
+  .alloc-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+  .alloc-fill{height:100%;border-radius:2px;}
+
+  /* SPARKLINES */
+  .sparkline-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .sparkline-row:last-child{border-bottom:none;}
+  .spark-name{font-size:12px;color:var(--text2);width:120px;flex-shrink:0;}
+  .spark-svg{flex:1;}
+  .spark-val{font-size:12px;font-weight:500;width:60px;text-align:right;flex-shrink:0;}
+
+  /* DETAIL PANEL */
+  .detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:flex-start;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+  .detail-overlay.open{opacity:1;pointer-events:all;}
+  .detail-drawer{width:460px;height:100%;background:var(--bg2);border-left:1px solid var(--border);overflow-y:auto;transform:translateX(100%);transition:transform 0.3s ease;padding:28px;}
+  .detail-overlay.open .detail-drawer{transform:translateX(0);}
+  .drawer-close{position:absolute;top:16px;right:16px;background:var(--bg4);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .drawer-close:hover{border-color:var(--border-gold);color:var(--gold);}
+
+  .d-header{margin-bottom:20px;}
+  .d-company-name{font-family:'Playfair Display',serif;font-size:22px;margin-bottom:4px;}
+  .d-sector{font-size:12px;color:var(--text3);}
+
+  .d-kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .d-kpi{background:var(--bg3);border-radius:8px;padding:12px 14px;}
+  .d-kpi-l{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
+  .d-kpi-v{font-family:'Playfair Display',serif;font-size:18px;}
+
+  .d-notes{background:var(--bg3);border-radius:8px;padding:14px;margin-bottom:16px;}
+  .d-notes-title{font-size:11px;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+  .d-note{font-size:13px;color:var(--text2);line-height:1.6;}
+
+  .d-actions-list .action-item{padding:9px 0;}
+
+  /* TABS in drawer */
+  .d-tabs{display:flex;gap:2px;margin-bottom:18px;background:var(--bg3);border-radius:7px;padding:3px;}
+  .d-tab{flex:1;padding:6px;border-radius:5px;border:none;background:transparent;font-size:11px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+  .d-tab.active{background:var(--bg4);color:var(--text);border:1px solid var(--border);}
+
+  /* MINI CHART */
+  .mini-chart{background:var(--bg3);border-radius:8px;padding:14px;margin-bottom:14px;}
+  .chart-bars{display:flex;align-items:flex-end;gap:4px;height:60px;}
+  .chart-bar{flex:1;border-radius:2px 2px 0 0;transition:opacity 0.15s;}
+  .chart-bar:hover{opacity:0.75;}
+  .chart-labels{display:flex;gap:4px;margin-top:4px;}
+  .chart-lbl{flex:1;font-size:9px;color:var(--text3);text-align:center;}
+
+  /* Responsive adjustments */
+  @media(max-width:900px){
+    .sidebar{width:180px;}
+    .metrics-row{grid-template-columns:1fr 1fr;}
+    .lower-grid{grid-template-columns:1fr;}
+  }
+  
+  /* VIEWS */
+  .view{display:none;}
+  .view.active{display:block;}
+  
+  /* COMMAND PANEL */
+  .cmd-input-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:16px;}
+  .cmd-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;}
+  .cmd-input::placeholder{color:var(--text3);}
+  .cmd-submit{background:var(--gold);color:#000;border:none;border-radius:5px;padding:5px 12px;font-size:12px;cursor:pointer;font-weight:600;font-family:'DM Sans',sans-serif;}
+  .cmd-result{background:var(--bg3);border:1px solid var(--border-gold);border-radius:8px;padding:14px;font-size:13px;color:var(--text2);line-height:1.6;min-height:60px;}
+  .cmd-result.loading::after{content:'Thinking...';color:var(--gold);font-style:italic;}
+
+  /* scroll */
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:var(--bg2);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-mark">K</div>
+    <div>
+      <div class="logo-text">Klaus Enterprises</div>
+      <div class="logo-sub">Holding Company OS</div>
+    </div>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-btn active" onclick="switchView('overview',this)">Overview</button>
+    <button class="nav-btn" onclick="switchView('portfolio',this)">Portfolio</button>
+    <button class="nav-btn" onclick="switchView('decisions',this)">Decisions</button>
+    <button class="nav-btn" onclick="switchView('command',this)">Command</button>
+  </div>
+  <div class="topbar-right">
+    <div class="pulse-dot"></div>
+    <div class="date-badge">LIVE · May 2026</div>
+  </div>
+</div>
+
+<div class="shell">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-section">Subsidiaries</div>
+  <div id="sidebar-companies"></div>
+  <div class="sidebar-section" style="margin-top:8px;">Foundation</div>
+  <div class="co-item" onclick="openDrawer(6)">
+    <div class="co-dot" style="background:var(--green);"></div>
+    <div>
+      <div class="co-name">Klaus Foundation</div>
+      <div class="co-short">Non-profit</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- OVERVIEW VIEW -->
+  <div class="view active" id="view-overview">
+    <!-- Metrics Row -->
+    <div class="metrics-row">
+      <div class="metric-card gold">
+        <div class="m-label">Group Revenue (Annual)</div>
+        <div class="m-value">₨ 4.8B</div>
+        <div class="m-delta up">▲ 18% YoY</div>
+      </div>
+      <div class="metric-card green">
+        <div class="m-label">Active Companies</div>
+        <div class="m-value">7</div>
+        <div class="m-delta neu">Across 6 sectors</div>
+      </div>
+      <div class="metric-card blue">
+        <div class="m-label">Combined Headcount</div>
+        <div class="m-value">340+</div>
+        <div class="m-delta up">▲ 12% this year</div>
+      </div>
+      <div class="metric-card red">
+        <div class="m-label">Open Action Items</div>
+        <div class="m-value" id="action-count">9</div>
+        <div class="m-delta dn">3 urgent</div>
+      </div>
+    </div>
+
+    <!-- Company Grid -->
+    <div class="section-head">
+      <div>
+        <div class="section-title">Portfolio Companies</div>
+        <div class="section-sub">Click any company for a full brief</div>
+      </div>
+      <button class="btn-sm" onclick="switchView('portfolio',document.querySelector('.nav-btn:nth-child(2)'))">View All →</button>
+    </div>
+    <div class="company-grid" id="company-grid"></div>
+
+    <!-- Lower Grid -->
+    <div class="lower-grid">
+      <!-- Actions Panel -->
+      <div class="panel">
+        <div class="panel-title"><div class="panel-title-icon"></div>Decisions & Action Items</div>
+        <div id="actions-list"></div>
+      </div>
+
+      <!-- Allocation Panel -->
+      <div>
+        <div class="panel" style="margin-bottom:14px;">
+          <div class="panel-title"><div class="panel-title-icon" style="background:var(--blue);"></div>Revenue Allocation</div>
+          <div class="alloc-list" id="alloc-list"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><div class="panel-title-icon" style="background:var(--purple);"></div>Performance Sparklines</div>
+          <div id="spark-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO VIEW -->
+  <div class="view" id="view-portfolio">
+    <div class="section-head" style="margin-bottom:20px;">
+      <div><div class="section-title">Full Portfolio Analysis</div><div class="section-sub">Seven companies, one view</div></div>
+    </div>
+    <div id="portfolio-table-wrap"></div>
+  </div>
+
+  <!-- DECISIONS VIEW -->
+  <div class="view" id="view-decisions">
+    <div class="section-head" style="margin-bottom:20px;">
+      <div><div class="section-title">Decision Inbox</div><div class="section-sub">Everything requiring your attention</div></div>
+    </div>
+    <div id="decisions-full"></div>
+  </div>
+
+  <!-- COMMAND VIEW -->
+  <div class="view" id="view-command">
+    <div class="section-head" style="margin-bottom:20px;">
+      <div><div class="section-title">Command Center</div><div class="section-sub">Ask anything across your group companies</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><div class="panel-title-icon" style="background:var(--gold);"></div>AI Advisor — Klaus Enterprises Group</div>
+      <div class="cmd-input-wrap">
+        <input class="cmd-input" id="cmd-input" placeholder="e.g. Which company needs my attention this week? / What's the cash position across all entities?" />
+        <button class="cmd-submit" onclick="runCommand()">Ask</button>
+      </div>
+      <div class="cmd-result" id="cmd-result" style="display:none;"></div>
+      <div style="margin-top:12px;">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:0.06em;text-transform:uppercase;">Quick prompts</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="btn-sm" onclick="setCmd('Which company has the strongest growth momentum right now?')">Growth momentum</button>
+          <button class="btn-sm" onclick="setCmd('Give me a cash flow risk assessment across all entities')">Cash flow risk</button>
+          <button class="btn-sm" onclick="setCmd('What are the top 3 strategic decisions I need to make this month?')">Top decisions</button>
+          <button class="btn-sm" onclick="setCmd('Identify synergies between Blue Harbour BPO and Technet & Co')">BPO + Tech synergies</button>
+          <button class="btn-sm" onclick="setCmd('What is Klaus Foundation doing and how does it relate to the group brand?')">Foundation role</button>
+          <button class="btn-sm" onclick="setCmd('Where should I invest next – which company needs capital injection?')">Capital allocation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- DETAIL DRAWER -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDrawer(event)">
+  <div class="detail-drawer" id="detail-drawer">
+    <button class="drawer-close" onclick="closeDrawerBtn()">✕</button>
+    <div id="drawer-content"></div>
+  </div>
+</div>
+
+<script>
+const companies = [
+  {
+    name:"Klaus Enterprises Pvt Ltd",
+    short:"KE",
+    sector:"Holding / Parent",
+    color:"var(--gold)",
+    bg:"rgba(201,168,76,0.12)",
+    icon:"🏛",
+    status:"Active",statusCls:"status-active",
+    revenue:"1.2B",headcount:45,
+    growth:"+22%",margin:"34%",
+    ytdTarget:78,
+    colorCls:"c0",
+    allocation:28,allocColor:"#C9A84C",
+    kpi:{revenue:"₨ 1.2B",ebitda:"₨ 408M",staff:"45",yoy:"+22%"},
+    notes:"Parent holding entity. Manages group strategy, cross-subsidiary capital allocation, and board governance. Currently exploring acquisition of a third logistics player.",
+    actions:[{title:"Board resolution — Q2 dividend",tag:"review",urgent:false},{title:"Annual audit filing deadline — 15 Jun",tag:"urgent",urgent:true}]
+  },
+  {
+    name:"Amathi Printing & Packaging",
+    short:"AP",
+    sector:"Manufacturing",
+    color:"var(--teal)",
+    bg:"rgba(58,138,138,0.12)",
+    icon:"🖨",
+    status:"Growth",statusCls:"status-growth",
+    revenue:"680M",headcount:92,
+    growth:"+14%",margin:"21%",
+    ytdTarget:62,
+    colorCls:"c1",
+    allocation:16,allocColor:"#3A8A8A",
+    kpi:{revenue:"₨ 680M",ebitda:"₨ 143M",staff:"92",yoy:"+14%"},
+    notes:"Core manufacturing arm. FMCG packaging contracts driving growth. New offset press installed Jan 2026. Key client Nestlé LK contract renewal due August.",
+    actions:[{title:"Nestlé contract renewal — negotiate terms",tag:"urgent",urgent:true},{title:"Review raw material procurement contracts",tag:"review",urgent:false}]
+  },
+  {
+    name:"Opulent Realty",
+    short:"OR",
+    sector:"Real Estate",
+    color:"var(--blue)",
+    bg:"rgba(58,110,196,0.12)",
+    icon:"🏢",
+    status:"Active",statusCls:"status-active",
+    revenue:"920M",headcount:28,
+    growth:"+31%",margin:"48%",
+    ytdTarget:88,
+    colorCls:"c2",
+    allocation:21,allocColor:"#3A6EC4",
+    kpi:{revenue:"₨ 920M",ebitda:"₨ 442M",staff:"28",yoy:"+31%"},
+    notes:"Highest-margin subsidiary. 3 active developments in Colombo 7, Battaramulla and Rajagiriya. Pipeline: 2 commercial projects under feasibility. Land bank valued at ₨ 2.4B.",
+    actions:[{title:"Rajagiriya project — permit sign-off",tag:"urgent",urgent:true},{title:"Land bank valuation update",tag:"review",urgent:false}]
+  },
+  {
+    name:"Blue Harbour BPO",
+    short:"BH",
+    sector:"Business Process Outsourcing",
+    color:"var(--purple)",
+    bg:"rgba(122,90,196,0.12)",
+    icon:"💼",
+    status:"Growth",statusCls:"status-growth",
+    revenue:"540M",headcount:85,
+    growth:"+19%",margin:"26%",
+    ytdTarget:71,
+    colorCls:"c3",
+    allocation:12,allocColor:"#7A5AC4",
+    kpi:{revenue:"₨ 540M",ebitda:"₨ 140M",staff:"85",yoy:"+19%"},
+    notes:"Fast-growing BPO unit serving AU/UK markets. Attrition at 18% — needs retention programme. Exploring Technet & Co partnership for AI-enabled process automation.",
+    actions:[{title:"Staff retention programme — Q3 launch",tag:"review",urgent:false},{title:"Technet AI automation pilot — approve budget",tag:"info",urgent:false}]
+  },
+  {
+    name:"Technet & Co",
+    short:"TC",
+    sector:"Technology",
+    color:"var(--amber)",
+    bg:"rgba(201,137,58,0.12)",
+    icon:"⚙️",
+    status:"Growth",statusCls:"status-growth",
+    revenue:"380M",headcount:52,
+    growth:"+44%",margin:"38%",
+    ytdTarget:65,
+    colorCls:"c4",
+    allocation:9,allocColor:"#C9893A",
+    kpi:{revenue:"₨ 380M",ebitda:"₨ 144M",staff:"52",yoy:"+44%"},
+    notes:"Highest growth rate in portfolio. SaaS product revenue ₨ 120M. Expanding into B2B automation for logistics and manufacturing verticals — natural upsell to group companies.",
+    actions:[{title:"SaaS pricing review — competitive analysis",tag:"review",urgent:false},{title:"Hire VP Engineering — final interviews",tag:"info",urgent:false}]
+  },
+  {
+    name:"Klaus Logistics",
+    short:"KL",
+    sector:"Logistics & Supply Chain",
+    color:"var(--red)",
+    bg:"rgba(196,83,58,0.12)",
+    icon:"🚚",
+    status:"Active",statusCls:"status-active",
+    revenue:"760M",headcount:118,
+    growth:"+8%",margin:"14%",
+    ytdTarget:55,
+    colorCls:"c5",
+    allocation:17,allocColor:"#C4533A",
+    kpi:{revenue:"₨ 760M",ebitda:"₨ 106M",staff:"118",yoy:"+8%"},
+    notes:"Largest headcount. Fuel cost pressures squeezing margins. Fleet modernisation plan underway — 12 new LNG vehicles Q3. Integration with Technet tracking system reduces cost by est. 8%.",
+    actions:[{title:"Fleet LNG procurement — finalise supplier",tag:"urgent",urgent:true},{title:"Technet tracking system integration go-live",tag:"info",urgent:false}]
+  },
+  {
+    name:"Klaus Foundation",
+    short:"KF",
+    sector:"Non-Profit / CSR",
+    color:"var(--green)",
+    bg:"rgba(58,138,92,0.12)",
+    icon:"🌱",
+    status:"Active",statusCls:"status-active",
+    revenue:"—",headcount:12,
+    growth:"—",margin:"—",
+    ytdTarget:80,
+    colorCls:"c6",
+    allocation:0,allocColor:"#3A8A5C",
+    kpi:{revenue:"₨ 42M CSR",ebitda:"N/A",staff:"12",yoy:"+3 prog."},
+    notes:"Group CSR vehicle. 3 active programmes: Education (180 scholars), Environment (coastal cleanup), and Digital Skills (SME training). Brand value driver for group entities.",
+    actions:[{title:"Annual report — publish before AGM",tag:"review",urgent:false},{title:"New scholarship intake — review applications",tag:"info",urgent:false}]
+  }
+];
+
+const actions = [
+  {company:"Opulent Realty",title:"Rajagiriya project permit sign-off",tag:"urgent",done:false},
+  {company:"Amathi Printing",title:"Nestlé contract renewal negotiation",tag:"urgent",done:false},
+  {company:"Klaus Logistics",title:"Fleet LNG supplier finalisation",tag:"urgent",done:false},
+  {company:"Klaus Enterprises",title:"Board resolution — Q2 dividend",tag:"review",done:false},
+  {company:"Opulent Realty",title:"Land bank valuation update",tag:"review",done:false},
+  {company:"Blue Harbour BPO",title:"Staff retention programme launch",tag:"review",done:false},
+  {company:"Technet & Co",title:"Hire VP Engineering — interviews",tag:"info",done:false},
+  {company:"Blue Harbour BPO",title:"Technet AI pilot — budget approval",tag:"info",done:false},
+  {company:"Klaus Foundation",title:"Annual report before AGM",tag:"review",done:false},
+];
+
+const months = ["Jan","Feb","Mar","Apr","May","Jun"];
+const sparkData = {
+  "Opulent Realty":[62,70,78,85,91,97],
+  "Technet & Co":[40,52,61,72,80,92],
+  "Klaus Enterprises":[58,63,68,72,75,80],
+  "Klaus Logistics":[48,50,52,54,55,57],
+  "Blue Harbour BPO":[55,59,63,67,71,75],
+};
+
+function buildSidebar(){
+  const el = document.getElementById('sidebar-companies');
+  companies.slice(0,6).forEach((c,i)=>{
+    el.innerHTML += `<div class="co-item" onclick="openDrawer(${i})">
+      <div class="co-dot" style="background:${c.color};"></div>
+      <div>
+        <div class="co-name">${c.name.split(' ').slice(0,2).join(' ')}</div>
+        <div class="co-short">${c.sector}</div>
+      </div>
+    </div>`;
+  });
+}
+
+function buildCompanyGrid(){
+  const el = document.getElementById('company-grid');
+  companies.slice(0,6).forEach((c,i)=>{
+    const growthColor = c.growth==='+44%'?'var(--amber)':c.growth==='+31%'?'var(--blue)':'var(--text2)';
+    el.innerHTML += `<div class="co-card ${c.colorCls}" onclick="openDrawer(${i})">
+      <div class="cc-top">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+            <div class="cc-icon" style="background:${c.bg};">${c.icon}</div>
+            <div>
+              <div class="cc-name">${c.name}</div>
+              <div class="cc-sector">${c.sector}</div>
+            </div>
+          </div>
+        </div>
+        <div class="cc-right">
+          <div class="cc-status ${c.statusCls}">${c.status}</div>
+          <div style="margin-top:6px;font-size:11px;color:${growthColor};font-weight:500;">${c.growth} YoY</div>
+        </div>
+      </div>
+      <div style="margin-bottom:4px;">
+        <div class="cc-rev">₨ ${c.revenue}</div>
+        <div class="cc-rev-label">Annual revenue</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${c.ytdTarget}%;background:${c.color};"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px;">${c.ytdTarget}% of annual target</div>
+      <div class="cc-stats">
+        <div class="cc-stat"><div class="cc-stat-v">${c.headcount}</div><div class="cc-stat-l">Headcount</div></div>
+        <div class="cc-stat"><div class="cc-stat-v">${c.margin!=='—'?c.margin:'N/A'}</div><div class="cc-stat-l">EBITDA Margin</div></div>
+        <div class="cc-stat"><div class="cc-stat-v" style="font-size:11px;">${c.kpi.ebitda}</div><div class="cc-stat-l">EBITDA</div></div>
+      </div>
+    </div>`;
+  });
+}
+
+function buildActions(){
+  const el = document.getElementById('actions-list');
+  const tagMap={urgent:'tag-urgent',review:'tag-review',info:'tag-info'};
+  actions.forEach((a,i)=>{
+    el.innerHTML+=`<div class="action-item">
+      <div class="action-check" id="chk-${i}" onclick="toggleCheck(${i})"></div>
+      <div class="action-body">
+        <div class="action-title">${a.title}<span class="action-tag ${tagMap[a.tag]}">${a.tag}</span></div>
+        <div class="action-meta">${a.company}</div>
+      </div>
+    </div>`;
+  });
+}
+
+function buildDecisionsFull(){
+  const el=document.getElementById('decisions-full');
+  const tagMap={urgent:'tag-urgent',review:'tag-review',info:'tag-info'};
+  const urgent=actions.filter(a=>a.tag==='urgent');
+  const review=actions.filter(a=>a.tag==='review');
+  const info=actions.filter(a=>a.tag==='info');
+  const section=(title,items,color)=>{
+    let html=`<div style="margin-bottom:24px;"><div style="font-size:13px;font-weight:500;color:${color};margin-bottom:10px;display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:${color};"></div>${title} (${items.length})</div><div class="panel">`;
+    items.forEach(a=>{ html+=`<div class="action-item"><div class="action-body"><div class="action-title">${a.title}<span class="action-tag ${tagMap[a.tag]}">${a.tag}</span></div><div class="action-meta">${a.company}</div></div></div>`; });
+    html+=`</div></div>`;return html;
+  };
+  el.innerHTML=section('Urgent — Act Now',urgent,'var(--red)')+section('Needs Review',review,'var(--gold)')+section('For Information',info,'var(--blue)');
+}
+
+function buildAlloc(){
+  const el=document.getElementById('alloc-list');
+  const display=companies.filter(c=>c.allocation>0);
+  display.forEach(c=>{
+    el.innerHTML+=`<div class="alloc-item">
+      <div class="alloc-top"><span class="alloc-name">${c.name.split(' ').slice(0,2).join(' ')}</span><span class="alloc-pct">${c.allocation}%</span></div>
+      <div class="alloc-bar"><div class="alloc-fill" style="width:${c.allocation*3.2}%;background:${c.allocColor};"></div></div>
+    </div>`;
+  });
+}
+
+function buildSparks(){
+  const el=document.getElementById('spark-list');
+  Object.entries(sparkData).forEach(([name,vals])=>{
+    const max=Math.max(...vals),min=Math.min(...vals),w=160,h=28;
+    const pts=vals.map((v,i)=>{const x=i*(w/(vals.length-1)),y=h-((v-min)/(max-min||1))*(h-4)+2;return `${x},${y}`;}).join(' ');
+    const last=vals[vals.length-1],prev=vals[vals.length-2];
+    const delta=last-prev;const col=delta>=0?'var(--green)':'var(--red)';
+    el.innerHTML+=`<div class="sparkline-row">
+      <div class="spark-name">${name.split(' ').slice(0,2).join(' ')}</div>
+      <svg class="spark-svg" height="28" viewBox="0 0 160 28"><polyline fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" points="${pts}"/></svg>
+      <div class="spark-val" style="color:${col}">${last}%</div>
+    </div>`;
+  });
+}
+
+function buildPortfolioTable(){
+  const el=document.getElementById('portfolio-table-wrap');
+  let html=`<div class="panel"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead><tr style="border-bottom:1px solid var(--border);">
+      <th style="padding:8px 10px;text-align:left;color:var(--text3);font-weight:400;letter-spacing:0.06em;font-size:10px;text-transform:uppercase;">Company</th>
+      <th style="padding:8px 10px;text-align:left;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">Sector</th>
+      <th style="padding:8px 10px;text-align:right;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">Revenue</th>
+      <th style="padding:8px 10px;text-align:right;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">EBITDA</th>
+      <th style="padding:8px 10px;text-align:right;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">Margin</th>
+      <th style="padding:8px 10px;text-align:right;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">YoY</th>
+      <th style="padding:8px 10px;text-align:right;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">Staff</th>
+      <th style="padding:8px 10px;text-align:center;color:var(--text3);font-weight:400;font-size:10px;text-transform:uppercase;">Status</th>
+    </tr></thead><tbody>`;
+  companies.forEach((c,i)=>{
+    const growthPos = c.growth && c.growth.startsWith('+') && c.growth!=='—';
+    html+=`<tr style="border-bottom:1px solid var(--border);cursor:pointer;" onclick="openDrawer(${i})" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      <td style="padding:10px 10px;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:6px;height:6px;border-radius:50%;background:${c.color};flex-shrink:0;"></div><span style="color:var(--text);font-weight:500;">${c.name}</span></div></td>
+      <td style="padding:10px;color:var(--text2);">${c.sector}</td>
+      <td style="padding:10px;text-align:right;color:var(--text);">₨ ${c.revenue}</td>
+      <td style="padding:10px;text-align:right;color:var(--text2);">${c.kpi.ebitda}</td>
+      <td style="padding:10px;text-align:right;color:${c.margin!=='—'?'var(--text2)':'var(--text3)'};">${c.margin}</td>
+      <td style="padding:10px;text-align:right;color:${growthPos?'var(--green)':'var(--text3)'};">${c.growth}</td>
+      <td style="padding:10px;text-align:right;color:var(--text2);">${c.headcount}</td>
+      <td style="padding:10px;text-align:center;"><span class="cc-status ${c.statusCls}">${c.status}</span></td>
+    </tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  el.innerHTML=html;
+}
+
+function toggleCheck(i){
+  const el=document.getElementById('chk-'+i);
+  el.classList.toggle('done');
+  const count=document.querySelectorAll('.action-check:not(.done)').length;
+  document.getElementById('action-count').textContent=count;
+}
+
+function openDrawer(i){
+  const c=companies[i];
+  const tagMap={urgent:'tag-urgent',review:'tag-review',info:'tag-info'};
+  let html=`<div class="d-header">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+      <div class="cc-icon" style="width:44px;height:44px;font-size:22px;background:${c.bg};">${c.icon}</div>
+      <div>
+        <div class="d-company-name" style="color:${c.color};">${c.name}</div>
+        <div class="d-sector">${c.sector}</div>
+      </div>
+    </div>
+  </div>
+  <div class="d-tabs">
+    <button class="d-tab active" onclick="drawerTab(this,'dt-overview-${i}')">Overview</button>
+    <button class="d-tab" onclick="drawerTab(this,'dt-actions-${i}')">Actions</button>
+    <button class="d-tab" onclick="drawerTab(this,'dt-notes-${i}')">Notes</button>
+  </div>
+  <div id="dt-overview-${i}">
+    <div class="d-kpi-grid">
+      <div class="d-kpi"><div class="d-kpi-l">Revenue</div><div class="d-kpi-v">${c.kpi.revenue}</div></div>
+      <div class="d-kpi"><div class="d-kpi-l">EBITDA</div><div class="d-kpi-v">${c.kpi.ebitda}</div></div>
+      <div class="d-kpi"><div class="d-kpi-l">YoY Growth</div><div class="d-kpi-v" style="color:${c.kpi.yoy!=='—'?'var(--green)':'var(--text3)'};">${c.kpi.yoy}</div></div>
+      <div class="d-kpi"><div class="d-kpi-l">Headcount</div><div class="d-kpi-v">${c.headcount}</div></div>
+    </div>
+    <div class="mini-chart">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;letter-spacing:0.06em;text-transform:uppercase;">YTD Target Progress</div>
+      <div class="chart-bars">`;
+  const barH=[35,42,50,54,58,c.ytdTarget].map(v=>Math.round(v*0.6));
+  ['Jan','Feb','Mar','Apr','May','Jun'].forEach((m,idx)=>{
+    html+=`<div class="chart-bar" style="height:${barH[idx]}px;background:${c.color};opacity:${0.4+idx*0.12};"></div>`;
+  });
+  html+=`</div><div class="chart-labels">`;
+  ['Jan','Feb','Mar','Apr','May','Jun'].forEach(m=>{ html+=`<div class="chart-lbl">${m}</div>`; });
+  html+=`</div></div>`;
+  html+=`<div class="progress-bar" style="height:6px;margin-bottom:4px;"><div class="progress-fill" style="width:${c.ytdTarget}%;background:${c.color};"></div></div>
+  <div style="font-size:11px;color:var(--text3);">${c.ytdTarget}% of annual target achieved</div>
+  </div>`;
+
+  html+=`<div id="dt-actions-${i}" style="display:none;"><div class="d-actions-list">`;
+  c.actions.forEach(a=>{
+    html+=`<div class="action-item"><div class="action-body"><div class="action-title">${a.title}<span class="action-tag ${tagMap[a.tag]}">${a.tag}</span></div></div></div>`;
+  });
+  html+=`</div></div>`;
+
+  html+=`<div id="dt-notes-${i}" style="display:none;"><div class="d-notes"><div class="d-notes-title">Company Brief</div><div class="d-note">${c.notes}</div></div></div>`;
+
+  document.getElementById('drawer-content').innerHTML=html;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function drawerTab(btn,targetId){
+  btn.closest('.detail-drawer').querySelectorAll('.d-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const allPanels=btn.closest('.detail-drawer').querySelectorAll('[id^="dt-"]');
+  allPanels.forEach(p=>p.style.display='none');
+  document.getElementById(targetId).style.display='block';
+}
+
+function closeDrawer(e){
+  if(e.target===document.getElementById('detail-overlay')) closeDrawerBtn();
+}
+function closeDrawerBtn(){
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function switchView(name, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+function setCmd(txt){
+  document.getElementById('cmd-input').value=txt;
+  document.getElementById('cmd-input').focus();
+}
+
+async function runCommand(){
+  const input=document.getElementById('cmd-input');
+  const result=document.getElementById('cmd-result');
+  const q=input.value.trim();
+  if(!q) return;
+  result.style.display='block';
+  result.textContent='';
+  result.classList.add('loading');
+
+  const context=`You are the AI advisor for Klaus Enterprises Group, a Sri Lankan holding company. Here is the portfolio:
+- Klaus Enterprises Pvt Ltd: Parent holding entity. Revenue ₨1.2B, EBITDA margin 34%, 45 staff, +22% YoY. Manages group strategy and capital allocation.
+- Amathi Printing & Packaging: Manufacturing (FMCG packaging). Revenue ₨680M, margin 21%, 92 staff, +14% YoY. Nestlé LK contract renewal due August 2026.
+- Opulent Realty: Real estate development. Revenue ₨920M, margin 48%, 28 staff, +31% YoY. 3 active Colombo developments. Land bank ₨2.4B.
+- Blue Harbour BPO: BPO serving AU/UK markets. Revenue ₨540M, margin 26%, 85 staff, +19% YoY. Staff attrition 18%.
+- Technet & Co: Technology/SaaS. Revenue ₨380M, margin 38%, 52 staff, +44% YoY. Highest growth rate.
+- Klaus Logistics: Logistics & supply chain. Revenue ₨760M, margin 14%, 118 staff, +8% YoY. Fleet modernisation underway.
+- Klaus Foundation: CSR/non-profit. 12 staff. 3 programmes: education, environment, digital skills.
+Total group revenue: ~₨4.8B. Key open decisions: Nestlé renewal, Rajagiriya permit, LNG fleet supplier, BPO retention programme, Technet VP Engineering hire.
+Answer as a sharp, strategic advisor. Be concise, direct and specific to these companies. Maximum 200 words.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:context,
+        messages:[{role:'user',content:q}]
+      })
+    });
+    const data=await res.json();
+    result.classList.remove('loading');
+    const text=data.content?.find(b=>b.type==='text')?.text||'Unable to process response.';
+    result.textContent=text;
+  }catch(e){
+    result.classList.remove('loading');
+    result.textContent='Advisory engine unavailable. Please try again.';
+  }
+}
+
+document.getElementById('cmd-input').addEventListener('keydown',e=>{ if(e.key==='Enter') runCommand(); });
+
+// INIT
+buildSidebar();
+buildCompanyGrid();
+buildActions();
+buildAlloc();
+buildSparks();
+buildDecisionsFull();
+buildPortfolioTable();
+
+// set date
+document.querySelector('.date-badge').textContent='LIVE · '+new Date().toLocaleDateString('en-GB',{month:'short',year:'numeric'}).toUpperCase();
+</script>
+</body>
+</html>
